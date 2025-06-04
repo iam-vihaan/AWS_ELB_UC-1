@@ -46,3 +46,10 @@ variable "key_name" {
   type        = string
   default     = "my-key-pair"
 }
+
+variable "sg_id" {
+  description = "Security group ID for EC2 instances"
+  type        = list(number)
+  default     = [80]
+
+}
