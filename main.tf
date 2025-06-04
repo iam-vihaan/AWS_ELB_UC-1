@@ -4,8 +4,8 @@ provider "aws" {
 
 
 
-module "network" {
-  source             = "./modules/network"
+module "vpc" {
+  source             = "./modules/vpc"
   vpc_cidr           = var.vpc_cidr
   vpc_name           = "demo-alb-vpc"
   environment        = var.environment
@@ -15,75 +15,20 @@ module "network" {
   owner              = "demo-alb"
 }
 
-module "nat" {
-  source           = "./modules/nat"
+module "NGW" {
+  source           = "./modules/NGW"
   public_subnet_id = module.network.public_subnets_id[0]
   private_rt_ids   = module.network.private_route_table_ids
   vpc_name         = module.network.vpc_name
 }
 
-module "sg" {
-  source        = "./modules/sg"
+module "SecurityGroup" {
+  source        = "./modules/SecurityGroup"
   vpc_id        = module.network.vpc_id
   environment   = var.environment
   vpc_name      = module.network.vpc_name
   ingress_ports = [80, 443, 22, 8080, 3306, 9000, 9100]
 }
-
-# locals {
-#   user_data_map = {
-#     home = <<-EOF
-#            #!/bin/bash
-#            apt-get update -y
-#            apt-get install -y nginx unzip
-#            systemctl start nginx
-#            systemctl enable nginx
-#            mkdir -p /var/www/html
-#            echo "<h1>Home</h1>" > /var/www/html/index.html
-#            echo "<p>demo-instance-web-1</p>" >> /var/www/html/index.html
-#            EOF
-
-#     image = <<-EOF
-#             #!/bin/bash
-#             apt-get update -y
-#             apt-get install -y nginx unzip
-#             systemctl start nginx
-#             systemctl enable nginx
-#             mkdir -p /var/www/html/images
-#             echo "<h1>Images</h1>" > /var/www/html/images/index.html
-#             echo "<p>demo-instance-web-2</p>" >> /var/www/html/images/index.html
-#             EOF
-
-#     register = <<-EOF
-#                #!/bin/bash
-#                apt-get update -y
-#                apt-get install -y nginx unzip
-#                systemctl start nginx
-#                systemctl enable nginx
-#                mkdir -p /var/www/html/register
-#                echo "<h1>Register</h1>" > /var/www/html/register/index.html
-#                echo "<p>demo-instance-web-3</p>" >> /var/www/html/register/index.html
-#                EOF
-#   }
-# }
-
-
-
-# module "ec2" {
-#   source          = "./modules/ec2"
-#   key_name        = var.key_name
-#   ami_name        = var.ami_id
-#   sg_id           = module.sg.sg_id
-#   env             = var.environment
-#   vpc_name        = module.network.vpc_name
-#   private_subnets = module.network.private_subnets_id
-#   instance_type   = var.instance_type
-#   project_name    = "demo-instance"
-#   user_data       = local.user_data_map
-
-# }
-
-
 
 
 module "homepage_instance" {
@@ -173,8 +118,8 @@ module "register_tg" {
   target_id = module.register_instance.instance_id
 }
 
-module "alb" {
-  source                   = "./modules/alb"
+module "lb" {
+  source                   = "./modules/lb"
   alb_name                 = "demo-bayer-alb" # Ensure this matches var.name in alb module
   security_groups          = var.sg_id
   vpc_id                   = module.network.vpc_id
